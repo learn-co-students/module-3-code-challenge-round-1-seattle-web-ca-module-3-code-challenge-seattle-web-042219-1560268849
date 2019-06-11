@@ -36,14 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
     likes.textContent = image.like_count;
     const ul = document.getElementById("comments");
     image.comments.forEach(comment => {
-      const listItem = document.createElement("li");
-      listItem.textContent = comment.content;
-      ul.appendChild(listItem);
+      //const listItem = document.createElement("li");
+      //listItem.textContent = comment.content;
+      const listItem = buildComment(comment, ul);
+
+      //ul.appendChild(listItem);
     })
   }
 
-  // function buildComment(comment) {
-  // }
+  function buildComment(comment, ul) {
+    const li = document.createElement("li")
+    li.textContent = comment.content + " ";
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = 'Delete';
+    deleteButton.id = comment.id;
+    deleteButton.addEventListener('click', function(event) {
+      deleteComment(event, comment);
+    });
+    li.appendChild(deleteButton);
+    ul.appendChild(li);
+  }
 
   function likeFeature() {
     const likeCount = document.getElementById("likes");
@@ -77,12 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateComment(event, commentSection) {
-    const newComment = document.createElement("li");
+    //const newComment = document.createElement("li");
     const commentContent = event.target[0].value;
     const commentInput = document.getElementById("comment_input");
-    newComment.textContent = commentContent;
-    commentSection.appendChild(newComment);
+    //newComment.textContent = commentContent;
+    //commentSection.appendChild(newComment);
     commentInput.value = "";
+    const ul = document.getElementById('comments');
     fetch(commentsURL, {
       method: 'POST',
       headers: {
@@ -91,14 +104,21 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       body: JSON.stringify({image_id: imageId, content: commentContent})
     })
-    // .then(resp => resp.json())
-    // .then(json => deleteComment(json))
+    .then(resp => resp.json())
+    .then(json => buildComment(json, ul))
   }
 
-  // function deleteComment(comment) {
-  //   const deleteButton = document.createElement("button");
-  //   deleteButton.textContent = 'Delete';
-  //   deleteButton.id = comment.id;
-  // }
+  function deleteComment(event, comment) {
+    const button = document.getElementById(`${comment.id}`);
+    const target = button.parentElement;
+    //console.log(button.parentElement);
+    fetch(commentsURL + '/' + comment.id, {
+      method: 'DELETE',
+    })
+    .then(resp => resp.json())
+    .then(json => {
+      target.remove();
+    })
+  }
 
 })
